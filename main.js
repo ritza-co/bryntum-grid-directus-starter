@@ -2,8 +2,40 @@ import { AjaxStore, Grid, StringHelper } from "@bryntum/grid";
 import "@bryntum/grid/grid.stockholm.css";
 
 const store = new AjaxStore({
-  readUrl: "/data/data.json",
+  readUrl: "http://localhost:8055/items/player_info",
   autoLoad: true,
+  createUrl: "http://localhost:8055/player_info-api",
+  updateUrl: "http://localhost:8055/player_info-api",
+  deleteUrl: "http://localhost:8055/player_info-api",
+  autoCommit: true,
+  useRestfulMethods: true,
+  httpMethods: {
+    read: "GET",
+    create: "POST",
+    update: "PATCH",
+    delete: "DELETE",
+  },
+  listeners: {
+    // change request body as needed
+    beforeRequest: (event) => {
+      if (event.action === "create") {
+        const newItem = event.body.data[0];
+        delete newItem.id;
+        event.body = newItem;
+      }
+      if (event.action === "update") {
+        const updatedItem = event.body.data[0];
+        const itemId = updatedItem.id;
+        delete updatedItem.id;
+        event.body = updatedItem;
+        store.updateUrl = `http://localhost:8055/player_info-api/${itemId}`;
+      }
+      if (event.action === "delete") {
+        const itemIds = event.body.ids;
+        event.body = itemIds;
+      }
+    },
+  },
 });
 
   let newPlayerCount = 0;
